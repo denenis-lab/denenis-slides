@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deza — Projects & AI</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap">
+
+    <style>
+        /* ===========================================
+           THEME — Neon Cyber
+           Dark base with cyan/magenta neon accents
+           =========================================== */
+        :root {
+            --bg-primary: #06080f;
+            --bg-secondary: #0c1020;
+            --bg-card: rgba(15, 20, 40, 0.7);
+            --text-primary: #e8ecf4;
+            --text-secondary: #6b7a99;
+            --accent: #00f0ff;
+            --accent-2: #c840ff;
+            --accent-glow: rgba(0, 240, 255, 0.15);
+            --accent-glow-2: rgba(200, 64, 255, 0.12);
+
+            --font-display: 'Clash Display', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+
+            --title-size: clamp(1.75rem, 8vw, 4.5rem);
+            --h2-size: clamp(1.4rem, 6vw, 2.5rem);
+            --h3-size: clamp(1.05rem, 4vw, 1.4rem);
+            --body-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            --small-size: clamp(0.75rem, 2vw, 0.85rem);
+            --tag-size: clamp(0.65rem, 1.8vw, 0.8rem);
+
+            --slide-padding: clamp(1.25rem, 5vw, 4rem);
+            --content-gap: clamp(0.8rem, 2vw, 2rem);
+            --element-gap: clamp(0.3rem, 1vw, 0.8rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.7s;
+        }
+
+        /* ===========================================
+           BASE
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* ===========================================
+           GRID BACKGROUND — subtle cyber grid
+           =========================================== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===========================================
+           SLIDES — each = exact viewport
+           =========================================== */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            padding: var(--slide-padding);
+            z-index: 1;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: var(--content-gap);
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 500;
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        /* Neon text glow */
+        .glow { color: var(--accent); text-shadow: 0 0 30px var(--accent-glow); }
+        .glow-2 { color: var(--accent-2); text-shadow: 0 0 30px var(--accent-glow-2); }
+
+        /* ===========================================
+           TAGS / BADGES
+           =========================================== */
+        .tag {
+            display: inline-block;
+            padding: clamp(0.25rem, 0.6vw, 0.35rem) clamp(0.6rem, 1.2vw, 0.75rem);
+            border-radius: 100px;
+            font-size: var(--tag-size);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid;
+        }
+
+        .tag--cyan {
+            color: var(--accent);
+            border-color: rgba(0, 240, 255, 0.3);
+            background: rgba(0, 240, 255, 0.06);
+        }
+
+        .tag--magenta {
+            color: var(--accent-2);
+            border-color: rgba(200, 64, 255, 0.3);
+            background: rgba(200, 64, 255, 0.06);
+        }
+
+        .tag--dim {
+            color: var(--text-secondary);
+            border-color: rgba(107, 122, 153, 0.3);
+            background: rgba(107, 122, 153, 0.06);
+        }
+
+        /* ===========================================
+           CARDS
+           =========================================== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: clamp(8px, 1vw, 16px);
+            padding: clamp(1rem, 2vw, 1.5rem);
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.05);
+        }
+
+        .card h3 {
+            margin-bottom: var(--element-gap);
+        }
+
+        .card p {
+            font-size: var(--small-size);
+        }
+
+        /* ===========================================
+           GRID LAYOUT
+           =========================================== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.6rem, 1.5vw, 1.2rem);
+        }
+
+        @media (max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           DIVIDER LINE
+           =========================================== */
+        .divider {
+            width: clamp(40px, 8vw, 80px);
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            margin: var(--element-gap) 0;
+            border-radius: 1px;
+        }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            z-index: 100;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* ===========================================
+           NAV DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(12px, 2vw, 24px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            z-index: 100;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(107, 122, 153, 0.3);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 0;
+            min-width: 44px;
+            min-height: 44px;
+            background-clip: content-box;
+            padding: 17px;
+        }
+
+        .nav-dot.active {
+            background-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: scale(1.3);
+        }
+
+        /* ===========================================
+           SLIDE NUMBER
+           =========================================== */
+        .slide-number {
+            position: absolute;
+            bottom: clamp(12px, 2vw, 24px);
+            right: clamp(12px, 2vw, 24px);
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            opacity: 0.4;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+
+        .slide.visible .reveal,
+        .slide.visible .reveal-left,
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: translateY(0) translateX(0) scale(1);
+        }
+
+        .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .reveal:nth-child(4) { transition-delay: 0.35s; }
+        .reveal:nth-child(5) { transition-delay: 0.45s; }
+
+        .reveal-left:nth-child(1) { transition-delay: 0.1s; }
+        .reveal-left:nth-child(2) { transition-delay: 0.2s; }
+
+        .reveal-scale:nth-child(1) { transition-delay: 0.1s; }
+        .reveal-scale:nth-child(2) { transition-delay: 0.2s; }
+        .reveal-scale:nth-child(3) { transition-delay: 0.3s; }
+        .reveal-scale:nth-child(4) { transition-delay: 0.4s; }
+
+        /* ===========================================
+           DECORATIVE BLOBS — floating neon gradients
+           =========================================== */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .blob--cyan {
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.25), transparent 70%);
+        }
+
+        .blob--magenta {
+            background: radial-gradient(circle, rgba(200, 64, 255, 0.2), transparent 70%);
+        }
+
+        /* ===========================================
+           TITLE SLIDE specifics
+           =========================================== */
+        .title-slide {
+            text-align: center;
+            align-items: center;
+        }
+
+        .title-slide .subtitle {
+            font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+            color: var(--text-secondary);
+            margin-top: var(--element-gap);
+            font-weight: 400;
+        }
+
+        .title-slide .intro-tags {
+            display: flex;
+            gap: clamp(0.4rem, 0.8vw, 0.6rem);
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: var(--content-gap);
+        }
+
+        /* ===========================================
+           PROJECT SLIDE — header + description + tags
+           =========================================== */
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.6rem, 1.5vw, 1rem);
+            margin-bottom: var(--element-gap);
+        }
+
+        .project-icon {
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            width: clamp(2.5rem, 5vw, 3.5rem);
+            height: clamp(2.5rem, 5vw, 3.5rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: clamp(6px, 0.8vw, 12px);
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .project-desc {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 700px;
+            margin-bottom: var(--content-gap);
+        }
+
+        .project-tags {
+            display: flex;
+            gap: clamp(0.3rem, 0.6vw, 0.5rem);
+            flex-wrap: wrap;
+            margin-bottom: var(--content-gap);
+        }
+
+        /* Feature list on project slides */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.5vw, 0.8rem);
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: clamp(0.4rem, 0.8vw, 0.6rem);
+            font-size: var(--body-size);
+        }
+
+        .feature-list li::before {
+            content: '\2192';
+            color: var(--accent);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ===========================================
+           FINAL SLIDE
+           =========================================== */
+        .final-slide {
+            text-align: center;
+            align-items: center;
+        }
+
+        .final-slide .big-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        /* ===========================================
+           RESPONSIVE
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(1rem, 3vw, 2.5rem);
+                --content-gap: clamp(0.5rem, 1.5vw, 1rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --h2-size: clamp(1.2rem, 3vw, 2rem);
+            }
+        }
+
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.4rem, 1vw, 0.75rem);
+                --title-size: clamp(1.2rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .decorative, .blob { display: none; }
+        }
+
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+
+        @media (max-width: 600px) {
+            :root {
+                --title-size: clamp(1.75rem, 8vw, 3rem);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress bar -->
+    <div class="progress" id="progress"></div>
+
+    <!-- Nav dots -->
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- ============================================
+         SLIDE 1 — TITLE
+         ============================================ -->
+    <section class="slide title-slide">
+        <div class="blob blob--cyan" style="width: 400px; height: 400px; top: -100px; right: -100px;"></div>
+        <div class="blob blob--magenta" style="width: 300px; height: 300px; bottom: -50px; left: -50px;"></div>
+
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <div class="reveal" style="margin-bottom: var(--element-gap);">
+                <span class="tag tag--cyan">data analyst</span>
+                <span class="tag tag--magenta" style="margin-left: 0.3rem;">vibecoder</span>
+            </div>
+            <h1 class="reveal">Чем я <span class="glow">занимаюсь</span></h1>
+            <p class="subtitle reveal">Проектики, нейронки и немного магии</p>
+            <div class="intro-tags reveal">
+                <span class="tag tag--dim">Python</span>
+                <span class="tag tag--dim">SQL</span>
+                <span class="tag tag--dim">Claude AI</span>
+                <span class="tag tag--dim">Telegram Bots</span>
+            </div>
+        </div>
+        <div class="slide-number">01 / 06</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 2 — OpenClaw / Bay Bot
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--cyan" style="width: 350px; height: 350px; top: 10%; right: -80px;"></div>
+
+        <div class="slide-content">
+            <div class="project-header reveal">
+                <div class="project-icon">🤖</div>
+                <div>
+                    <h2 style="margin-bottom: 0;">OpenClaw <span class="glow">/ Bay</span></h2>
+                </div>
+            </div>
+
+            <p class="project-desc reveal">
+                Личный AI-агент в Telegram. Работает 24/7 на сервере,
+                помнит контекст, делает ресёрч, пишет саммари дня.
+            </p>
+
+            <div class="project-tags reveal">
+                <span class="tag tag--cyan">Telegram Bot</span>
+                <span class="tag tag--magenta">Claude API</span>
+                <span class="tag tag--dim">DigitalOcean</span>
+                <span class="tag tag--dim">Python</span>
+            </div>
+
+            <ul class="feature-list reveal">
+                <li>Память между сессиями — помнит о чём говорили</li>
+                <li>Background research — гуглит пока ты спишь</li>
+                <li>Дневные саммари — что было важного за день</li>
+            </ul>
+        </div>
+        <div class="slide-number">02 / 06</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 3 — Plaud NotePin
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--magenta" style="width: 300px; height: 300px; bottom: 10%; left: -60px;"></div>
+
+        <div class="slide-content">
+            <div class="project-header reveal">
+                <div class="project-icon">🎙</div>
+                <div>
+                    <h2 style="margin-bottom: 0;">Plaud <span class="glow-2">NotePin</span></h2>
+                </div>
+            </div>
+
+            <p class="project-desc reveal">
+                Значок на одежде записывает все встречи.
+                Система парсит транскрипты и выдаёт AI-отчёты.
+            </p>
+
+            <div class="project-tags reveal">
+                <span class="tag tag--magenta">Speech-to-Text</span>
+                <span class="tag tag--cyan">AI Analysis</span>
+                <span class="tag tag--dim">Google Drive</span>
+            </div>
+
+            <ul class="feature-list reveal">
+                <li>Синхронизация транскриптов с Google Drive</li>
+                <li>AI-анализ по 9 тематическим направлениям</li>
+                <li>HTML-интерфейс с визуализацией</li>
+            </ul>
+        </div>
+        <div class="slide-number">03 / 06</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 4 — Let's Fly Dashboard
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--cyan" style="width: 250px; height: 250px; top: 5%; left: -40px;"></div>
+
+        <div class="slide-content">
+            <div class="project-header reveal">
+                <div class="project-icon">✈️</div>
+                <div>
+                    <h2 style="margin-bottom: 0;">Let's Fly <span class="glow">Dashboard</span></h2>
+                </div>
+            </div>
+
+            <p class="project-desc reveal">
+                Streamlit-дашборд для туроператора. Анализ агентов,
+                падения продаж и доля рынка — всё на данных.
+            </p>
+
+            <div class="project-tags reveal">
+                <span class="tag tag--cyan">Streamlit</span>
+                <span class="tag tag--dim">Python</span>
+            </div>
+
+            <ul class="feature-list reveal">
+                <li>Мониторинг эффективности агентов в реальном времени</li>
+                <li>Автоматическое обнаружение падений продаж</li>
+                <li>Сравнение доли рынка с конкурентами</li>
+            </ul>
+        </div>
+        <div class="slide-number">04 / 06</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 5 — Hermes API
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--magenta" style="width: 280px; height: 280px; bottom: 15%; right: -60px;"></div>
+
+        <div class="slide-content">
+            <div class="project-header reveal">
+                <div class="project-icon">🔌</div>
+                <div>
+                    <h2 style="margin-bottom: 0;">Hermes <span class="glow-2">API</span></h2>
+                </div>
+            </div>
+
+            <p class="project-desc reveal">
+                API-интеграция для Sletat.ru. Бэкенд, связывающий
+                данные бронирования туроператоров.
+            </p>
+
+            <div class="project-tags reveal">
+                <span class="tag tag--magenta">.NET</span>
+                <span class="tag tag--dim">GitLab CI/CD</span>
+            </div>
+
+            <ul class="feature-list reveal">
+                <li>Автоматическая синхронизация данных бронирований</li>
+                <li>CI/CD пайплайн для деплоя через GitLab</li>
+                <li>Интеграция с внешними API туроператоров</li>
+            </ul>
+        </div>
+        <div class="slide-number">05 / 06</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 6 — Claude Code & AI Workflow
+         ============================================ -->
+    <section class="slide final-slide">
+        <div class="blob blob--cyan" style="width: 400px; height: 400px; top: -100px; left: 30%;"></div>
+        <div class="blob blob--magenta" style="width: 350px; height: 350px; bottom: -80px; right: 10%;"></div>
+
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <div class="reveal" style="margin-bottom: var(--content-gap);">
+                <span class="tag tag--cyan">claude code</span>
+                <span class="tag tag--magenta" style="margin-left: 0.3rem;">skills</span>
+                <span class="tag tag--dim" style="margin-left: 0.3rem;">agents</span>
+            </div>
+
+            <p class="big-text reveal">
+                Я не пишу код.<br>
+                Я <span class="glow">разговариваю</span> с тем,<br>
+                кто его пишет.
+            </p>
+
+            <div class="divider reveal" style="margin: var(--content-gap) auto;"></div>
+
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); max-width: 500px;">
+                Claude Code — мой основной инструмент.
+                Скиллы, агенты, автоматизация — всё через промпты.
+                Вайбкодинг как стиль жизни.
+            </p>
+        </div>
+        <div class="slide-number">06 / 06</div>
+    </section>
+
+    <!-- ============================================
+       JAVASCRIPT — Navigation, animations, interactions
+       ============================================ -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.totalSlides = this.slides.length;
+                this.currentSlide = 0;
+                this.isScrolling = false;
+
+                this.createNavDots();
+                this.setupObserver();
+                this.setupKeyboard();
+                this.setupWheel();
+                this.setupTouch();
+                this.updateProgress();
+
+                // Make first slide visible immediately
+                this.slides[0].classList.add('visible');
+            }
+
+            /* --- Nav dots --- */
+            createNavDots() {
+                const nav = document.getElementById('navDots');
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.classList.add('nav-dot');
+                    if (i === 0) dot.classList.add('active');
+                    dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+                    dot.addEventListener('click', () => this.goTo(i));
+                    nav.appendChild(dot);
+                });
+                this.dots = nav.querySelectorAll('.nav-dot');
+            }
+
+            /* --- Intersection Observer for scroll-triggered animations --- */
+            setupObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = [...this.slides].indexOf(entry.target);
+                            this.currentSlide = idx;
+                            this.updateDots();
+                            this.updateProgress();
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            /* --- Keyboard nav --- */
+            setupKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault();
+                        this.next();
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.prev();
+                    }
+                });
+            }
+
+            /* --- Mouse wheel with debounce --- */
+            setupWheel() {
+                let timeout;
+                document.addEventListener('wheel', (e) => {
+                    if (this.isScrolling) return;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        if (e.deltaY > 30) this.next();
+                        else if (e.deltaY < -30) this.prev();
+                    }, 50);
+                }, { passive: true });
+            }
+
+            /* --- Touch / swipe --- */
+            setupTouch() {
+                let startY = 0;
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const diff = startY - e.changedTouches[0].clientY;
+                    if (Math.abs(diff) > 50) {
+                        if (diff > 0) this.next();
+                        else this.prev();
+                    }
+                }, { passive: true });
+            }
+
+            /* --- Navigation --- */
+            goTo(index) {
+                if (index < 0 || index >= this.totalSlides) return;
+                this.isScrolling = true;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.currentSlide = index;
+                this.updateDots();
+                this.updateProgress();
+                setTimeout(() => { this.isScrolling = false; }, 800);
+            }
+
+            next() { this.goTo(this.currentSlide + 1); }
+            prev() { this.goTo(this.currentSlide - 1); }
+
+            updateDots() {
+                this.dots.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide));
+            }
+
+            updateProgress() {
+                const pct = ((this.currentSlide + 1) / this.totalSlides) * 100;
+                document.getElementById('progress').style.width = pct + '%';
+            }
+        }
+
+        // Launch
+        new SlidePresentation();
+    </script>
+</body>
+</html>

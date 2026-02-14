@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperPowers — Как устроены суперспособности AI-агента</title>
+
+    <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap">
+
+    <style>
+        /* ===========================================
+           THEME — Neon Cyber (same palette as aiganysh deck)
+           =========================================== */
+        :root {
+            --bg-primary: #06080f;
+            --bg-secondary: #0c1020;
+            --bg-card: rgba(15, 20, 40, 0.7);
+            --text-primary: #e8ecf4;
+            --text-secondary: #6b7a99;
+            --accent: #00f0ff;
+            --accent-2: #c840ff;
+            --accent-3: #ff6b6b;
+            --accent-green: #00ff88;
+            --accent-glow: rgba(0, 240, 255, 0.15);
+            --accent-glow-2: rgba(200, 64, 255, 0.12);
+
+            --font-display: 'Clash Display', sans-serif;
+            --font-body: 'Satoshi', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --title-size: clamp(1.75rem, 8vw, 4rem);
+            --h2-size: clamp(1.35rem, 6vw, 2.2rem);
+            --h3-size: clamp(1rem, 3.5vw, 1.3rem);
+            --body-size: clamp(0.875rem, 2.5vw, 1.05rem);
+            --small-size: clamp(0.75rem, 2vw, 0.85rem);
+            --tag-size: clamp(0.65rem, 1.8vw, 0.75rem);
+            --mono-size: clamp(0.7rem, 1.8vw, 0.8rem);
+
+            --slide-padding: clamp(1.25rem, 5vw, 4rem);
+            --content-gap: clamp(0.6rem, 1.8vw, 1.5rem);
+            --element-gap: clamp(0.25rem, 0.8vw, 0.6rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.7s;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-snap-type: y mandatory;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* Grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===========================================
+           SLIDES
+           =========================================== */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            padding: var(--slide-padding);
+            z-index: 1;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+        }
+
+        /* ===========================================
+           TYPOGRAPHY
+           =========================================== */
+        h1 {
+            font-family: var(--font-display);
+            font-size: var(--title-size);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-family: var(--font-display);
+            font-size: var(--h2-size);
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: var(--content-gap);
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        p, li {
+            font-size: var(--body-size);
+            line-height: 1.55;
+            color: var(--text-secondary);
+        }
+
+        .glow { color: var(--accent); text-shadow: 0 0 25px var(--accent-glow); }
+        .glow-2 { color: var(--accent-2); text-shadow: 0 0 25px var(--accent-glow-2); }
+        .glow-green { color: var(--accent-green); text-shadow: 0 0 20px rgba(0, 255, 136, 0.15); }
+        .glow-red { color: var(--accent-3); text-shadow: 0 0 20px rgba(255, 107, 107, 0.15); }
+
+        /* ===========================================
+           TAGS
+           =========================================== */
+        .tag {
+            display: inline-block;
+            padding: clamp(0.2rem, 0.5vw, 0.3rem) clamp(0.5rem, 1vw, 0.75rem);
+            border-radius: 100px;
+            font-size: var(--tag-size);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid;
+        }
+        .tag--cyan { color: var(--accent); border-color: rgba(0, 240, 255, 0.3); background: rgba(0, 240, 255, 0.06); }
+        .tag--magenta { color: var(--accent-2); border-color: rgba(200, 64, 255, 0.3); background: rgba(200, 64, 255, 0.06); }
+        .tag--green { color: var(--accent-green); border-color: rgba(0, 255, 136, 0.3); background: rgba(0, 255, 136, 0.06); }
+        .tag--red { color: var(--accent-3); border-color: rgba(255, 107, 107, 0.3); background: rgba(255, 107, 107, 0.06); }
+        .tag--dim { color: var(--text-secondary); border-color: rgba(107, 122, 153, 0.3); background: rgba(107, 122, 153, 0.06); }
+
+        /* ===========================================
+           CARDS
+           =========================================== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: clamp(6px, 0.8vw, 12px);
+            padding: clamp(0.7rem, 1.5vw, 1.2rem);
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            border-color: rgba(0, 240, 255, 0.2);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.04);
+        }
+        .card h3 { margin-bottom: var(--element-gap); }
+        .card p { font-size: var(--small-size); }
+
+        /* ===========================================
+           GRIDS
+           =========================================== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        @media (max-width: 700px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           PIPELINE (vertical on mobile, horizontal on desktop)
+           =========================================== */
+        .pipeline {
+            display: flex;
+            align-items: stretch;
+            gap: clamp(0.3rem, 0.6vw, 0.5rem);
+            overflow: hidden;
+        }
+        .pipeline-step {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid rgba(0, 240, 255, 0.08);
+            border-radius: clamp(6px, 0.6vw, 10px);
+            padding: clamp(0.5rem, 1vw, 0.9rem);
+            text-align: center;
+            position: relative;
+        }
+        .pipeline-step .step-num {
+            font-family: var(--font-mono);
+            font-size: var(--tag-size);
+            color: var(--accent);
+            opacity: 0.6;
+            margin-bottom: clamp(0.2rem, 0.4vw, 0.3rem);
+        }
+        .pipeline-step h3 {
+            font-size: clamp(0.85rem, 3vw, 1rem);
+            margin-bottom: clamp(0.15rem, 0.3vw, 0.25rem);
+        }
+        .pipeline-step p {
+            font-size: clamp(0.7rem, 2vw, 0.75rem);
+            line-height: 1.4;
+        }
+        .pipeline-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
+            opacity: 0.4;
+            flex-shrink: 0;
+        }
+        /* Mobile: always vertical */
+        @media (max-width: 600px) {
+            .pipeline {
+                flex-direction: column;
+            }
+            .pipeline-arrow {
+                justify-content: center;
+            }
+            /* Hide horizontal arrows, show vertical via content override in HTML */
+        }
+
+        /* ===========================================
+           CODE BLOCK (mono style for quotes)
+           =========================================== */
+        .iron-law {
+            font-family: var(--font-mono);
+            font-size: clamp(0.75rem, 2vw, 0.85rem);
+            background: rgba(0, 240, 255, 0.04);
+            border: 1px solid rgba(0, 240, 255, 0.12);
+            border-left: 3px solid var(--accent);
+            padding: clamp(0.6rem, 1.2vw, 0.8rem) clamp(0.8rem, 1.5vw, 1rem);
+            border-radius: 0 clamp(4px, 0.4vw, 6px) clamp(4px, 0.4vw, 6px) 0;
+            color: var(--accent);
+            line-height: 1.5;
+        }
+
+        /* ===========================================
+           DIVIDER
+           =========================================== */
+        .divider {
+            width: clamp(40px, 8vw, 80px);
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            margin: var(--element-gap) 0;
+            border-radius: 1px;
+        }
+
+        /* ===========================================
+           BLOBS
+           =========================================== */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            opacity: 0.4;
+        }
+        .blob--cyan { background: radial-gradient(circle, rgba(0, 240, 255, 0.25), transparent 70%); }
+        .blob--magenta { background: radial-gradient(circle, rgba(200, 64, 255, 0.2), transparent 70%); }
+
+        /* ===========================================
+           PROGRESS & NAV
+           =========================================== */
+        .progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            z-index: 100;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        .nav-dots {
+            position: fixed;
+            right: clamp(10px, 1.5vw, 20px);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(107, 122, 153, 0.3);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            transform: scale(1.3);
+        }
+        .slide-number {
+            position: absolute;
+            bottom: clamp(10px, 1.5vw, 20px);
+            right: clamp(10px, 1.5vw, 20px);
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            opacity: 0.35;
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.93);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+        .slide.visible .reveal,
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .reveal:nth-child(4) { transition-delay: 0.35s; }
+        .reveal:nth-child(5) { transition-delay: 0.45s; }
+        .reveal-scale:nth-child(1) { transition-delay: 0.1s; }
+        .reveal-scale:nth-child(2) { transition-delay: 0.2s; }
+        .reveal-scale:nth-child(3) { transition-delay: 0.3s; }
+        .reveal-scale:nth-child(4) { transition-delay: 0.4s; }
+        .reveal-scale:nth-child(5) { transition-delay: 0.5s; }
+
+        /* ===========================================
+           TITLE SLIDE
+           =========================================== */
+        .title-slide {
+            text-align: center;
+            align-items: center;
+        }
+        .title-slide .subtitle {
+            font-size: clamp(0.85rem, 2.5vw, 1.15rem);
+            color: var(--text-secondary);
+            margin-top: var(--element-gap);
+        }
+
+        /* ===========================================
+           FEATURE LIST
+           =========================================== */
+        .feature-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--element-gap);
+        }
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: clamp(0.3rem, 0.6vw, 0.5rem);
+            font-size: var(--body-size);
+        }
+        .feature-list li .li-icon {
+            flex-shrink: 0;
+            font-size: var(--body-size);
+        }
+
+        /* ===========================================
+           RED FLAGS TABLE
+           =========================================== */
+        .rf-row {
+            display: flex;
+            gap: clamp(0.5rem, 1vw, 0.8rem);
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) 0;
+            border-bottom: 1px solid rgba(107, 122, 153, 0.1);
+            align-items: flex-start;
+        }
+        .rf-thought {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-size: var(--mono-size);
+            color: var(--accent-3);
+            font-style: italic;
+        }
+        .rf-reality {
+            flex: 1.2;
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+
+        /* ===========================================
+           SUBAGENT STACK (vertical cards)
+           =========================================== */
+        .subagent-stack {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.5rem, 1.2vw, 0.8rem);
+        }
+        .subagent-stack .card {
+            width: 100%;
+        }
+
+        /* ===========================================
+           RESPONSIVE — MOBILE
+           =========================================== */
+        @media (max-width: 600px) {
+            .rf-row {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+            .rf-thought {
+                font-size: 0.85rem;
+            }
+            .rf-reality {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(1rem, 3vw, 2.5rem);
+                --content-gap: clamp(0.4rem, 1.2vw, 0.8rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 0.8vw, 0.6rem);
+            }
+            .nav-dots, .blob { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2vw, 1rem);
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress" id="progress"></div>
+    <nav class="nav-dots" id="navDots"></nav>
+
+    <!-- ============================================
+         SLIDE 1 — TITLE
+         ============================================ -->
+    <section class="slide title-slide">
+        <div class="blob blob--cyan" style="width: 400px; height: 400px; top: -120px; right: -80px;"></div>
+        <div class="blob blob--magenta" style="width: 300px; height: 300px; bottom: -60px; left: -40px;"></div>
+
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <div class="reveal" style="margin-bottom: var(--element-gap);">
+                <span class="tag tag--cyan">claude code plugin</span>
+                <span class="tag tag--magenta" style="margin-left: 0.2rem;">by Jesse Vincent</span>
+            </div>
+            <h1 class="reveal"><span class="glow">Super</span>Powers</h1>
+            <p class="subtitle reveal">Как экспертные знания инженеров зашиваются в промпты для AI-агентов</p>
+            <div class="divider reveal" style="margin: var(--content-gap) auto;"></div>
+            <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary);">
+                15 скиллов &middot; полный цикл разработки &middot; от идеи до merge
+            </p>
+        </div>
+        <div class="slide-number">01 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 2 — CORE IDEA
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--cyan" style="width: 300px; height: 300px; top: 5%; right: -60px;"></div>
+
+        <div class="slide-content">
+            <h2 class="reveal">В чём <span class="glow">идея</span>?</h2>
+
+            <p class="reveal" style="max-width: 700px; margin-bottom: var(--content-gap);">
+                AI-агент умный, но без дисциплины. Он может написать код,
+                но склонен <strong style="color: var(--accent-3);">срезать углы</strong>:
+                пропустить тесты, угадать вместо исследования, сказать "готово" без проверки.
+            </p>
+
+            <div class="iron-law reveal" style="margin-bottom: var(--content-gap);">
+                SuperPowers = промпты-инструкции, заставляющие AI работать как дисциплинированный senior
+            </div>
+
+            <ul class="feature-list reveal">
+                <li><span class="li-icon glow">&#x2192;</span> Скиллы загружаются автоматически по контексту</li>
+                <li><span class="li-icon glow">&#x2192;</span> Агент не может их проигнорировать</li>
+                <li><span class="li-icon glow">&#x2192;</span> Каждый скилл = опыт десятков провалов</li>
+            </ul>
+        </div>
+        <div class="slide-number">02 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 3 — PIPELINE part 1 (Brainstorm + Plan)
+         ============================================ -->
+    <section class="slide">
+        <div class="slide-content">
+            <h2 class="reveal">От идеи до <span class="glow">merge</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">1/2</span></h2>
+            <div class="divider reveal"></div>
+
+            <div class="pipeline reveal" style="margin-top: var(--content-gap); flex-direction: column;">
+                <div class="pipeline-step">
+                    <div class="step-num">01</div>
+                    <h3 class="glow-2">Brainstorm</h3>
+                    <p>Сократовский метод. Вопросы по одному, пока не вытянет из тебя спецификацию</p>
+                </div>
+                <div class="pipeline-arrow">&darr;</div>
+                <div class="pipeline-step">
+                    <div class="step-num">02</div>
+                    <h3 class="glow">Plan</h3>
+                    <p>Пошаговый план для "джуна без вкуса". Файлы, код, команды — всё готовое</p>
+                </div>
+            </div>
+
+            <p class="reveal" style="margin-top: var(--content-gap); font-size: var(--small-size); color: var(--text-secondary);">
+                Каждый шаг — отдельный скилл. Агент автономно работает часами, не отклоняясь от плана.
+            </p>
+        </div>
+        <div class="slide-number">03 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 4 — PIPELINE part 2 (Build + Review + Finish)
+         ============================================ -->
+    <section class="slide">
+        <div class="slide-content">
+            <h2 class="reveal">От идеи до <span class="glow">merge</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">2/2</span></h2>
+            <div class="divider reveal"></div>
+
+            <div class="pipeline reveal" style="margin-top: var(--content-gap); flex-direction: column;">
+                <div class="pipeline-step">
+                    <div class="step-num">03</div>
+                    <h3 class="glow-green">Build</h3>
+                    <p>Субагенты пишут код по TDD. Каждый в изоляции, со свежим контекстом</p>
+                </div>
+                <div class="pipeline-arrow">&darr;</div>
+                <div class="pipeline-step">
+                    <div class="step-num">04</div>
+                    <h3 class="glow-red">Review</h3>
+                    <p>Двойной ревью: соответствие спеку + качество кода. Не пройдёшь — переделка</p>
+                </div>
+                <div class="pipeline-arrow">&darr;</div>
+                <div class="pipeline-step">
+                    <div class="step-num">05</div>
+                    <h3 class="glow-2">Finish</h3>
+                    <p>Верификация, merge или PR. Чистка worktree</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">04 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 5 — TDD + Scientific Method
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--magenta" style="width: 280px; height: 280px; bottom: 5%; left: -50px;"></div>
+
+        <div class="slide-content">
+            <h2 class="reveal">Фреймворки <span class="glow-2">внутри</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">1/2</span></h2>
+            <div class="divider reveal"></div>
+
+            <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+                <div class="card">
+                    <h3><span class="glow-green">TDD</span> — Red-Green-Refactor</h3>
+                    <p>Напиши тест. Убедись что падает. Напиши минимум кода. Убедись что проходит. Рефакторинг. Написал код до теста? <strong>Удали и начни заново.</strong></p>
+                    <div style="margin-top: var(--element-gap);"><span class="tag tag--green">iron law</span></div>
+                </div>
+                <div class="card">
+                    <h3><span class="glow-red">Scientific Method</span></h3>
+                    <p>Дебаг по 4 фазам: воспроизведи баг, найди паттерн, сформируй гипотезу, проверь. 3 фикса не помогли? Проблема в архитектуре.</p>
+                    <div style="margin-top: var(--element-gap);"><span class="tag tag--red">systematic debugging</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">05 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 6 — YAGNI + Socratic Method
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--cyan" style="width: 250px; height: 250px; top: 10%; right: -50px;"></div>
+
+        <div class="slide-content">
+            <h2 class="reveal">Фреймворки <span class="glow-2">внутри</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">2/2</span></h2>
+            <div class="divider reveal"></div>
+
+            <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+                <div class="card">
+                    <h3><span class="glow">YAGNI</span> + DRY</h3>
+                    <p>You Aren't Gonna Need It. Не делай то, что не просили. Не проектируй на будущее. Минимум достаточный для задачи — и точка.</p>
+                    <div style="margin-top: var(--element-gap);"><span class="tag tag--cyan">writing plans</span></div>
+                </div>
+                <div class="card">
+                    <h3><span class="glow-2">Socratic Method</span></h3>
+                    <p>Brainstorming через вопросы по одному. Не спрашивай 5 вопросов сразу. Предложи 2-3 подхода, объясни trade-offs, веди к решению.</p>
+                    <div style="margin-top: var(--element-gap);"><span class="tag tag--magenta">brainstorming</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">06 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 7 — ANTI-RATIONALIZATION (first 3 rows)
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--cyan" style="width: 250px; height: 250px; top: -40px; left: -40px;"></div>
+
+        <div class="slide-content">
+            <h2 class="reveal">Анти-<span class="glow-red">рационализация</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">1/2</span></h2>
+            <p class="reveal" style="margin-bottom: var(--content-gap); max-width: 650px;">
+                Каждый скилл содержит таблицу отмазок, которые AI обычно придумывает — и сразу их разбивает.
+            </p>
+
+            <div class="reveal">
+                <div class="rf-row">
+                    <div class="rf-thought">"Слишком просто для тестов"</div>
+                    <div class="rf-reality">Простой код ломается. Тест занимает 30 секунд.</div>
+                </div>
+                <div class="rf-row">
+                    <div class="rf-thought">"Напишу тесты потом"</div>
+                    <div class="rf-reality">Тест, который сразу проходит, ничего не доказывает.</div>
+                </div>
+                <div class="rf-row" style="border-bottom: none;">
+                    <div class="rf-thought">"Быстрый фикс, потом разберусь"</div>
+                    <div class="rf-reality">Фикс симптома = новые баги. Найди root cause.</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-number">07 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 8 — ANTI-RATIONALIZATION cont. (last 2 rows + summary)
+         ============================================ -->
+    <section class="slide">
+        <div class="slide-content">
+            <h2 class="reveal">Анти-<span class="glow-red">рационализация</span> <span style="font-size: var(--small-size); color: var(--text-secondary);">2/2</span></h2>
+
+            <div class="reveal" style="margin-bottom: var(--content-gap);">
+                <div class="rf-row">
+                    <div class="rf-thought">"Должно работать"</div>
+                    <div class="rf-reality">Запусти команду. Прочитай вывод. Потом утверждай.</div>
+                </div>
+                <div class="rf-row" style="border-bottom: none;">
+                    <div class="rf-thought">"Ещё один фикс поможет"</div>
+                    <div class="rf-reality">3+ неудачных фикса = проблема архитектуры, не кода.</div>
+                </div>
+            </div>
+
+            <div class="iron-law reveal">
+                Если ты ловишь себя на отмазке — остановись. Это сигнал, что ты срезаешь угол.
+            </div>
+        </div>
+        <div class="slide-number">08 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 9 — SUBAGENT ARCHITECTURE
+         ============================================ -->
+    <section class="slide">
+        <div class="blob blob--magenta" style="width: 300px; height: 300px; top: 10%; right: -70px;"></div>
+
+        <div class="slide-content">
+            <h2 class="reveal">Архитектура <span class="glow">субагентов</span></h2>
+            <div class="divider reveal"></div>
+
+            <p class="reveal" style="margin-bottom: var(--content-gap); max-width: 650px;">
+                Каждая задача из плана выполняется свежим субагентом в изоляции. Потом проходит двойной ревью.
+            </p>
+
+            <div class="subagent-stack reveal" style="margin-bottom: var(--content-gap);">
+                <div class="card" style="border-color: rgba(0, 255, 136, 0.15);">
+                    <h3><span class="glow-green">Implementer</span></h3>
+                    <p>Получает задачу + контекст. Пишет код по TDD. Коммитит. Делает self-review.</p>
+                </div>
+                <div class="card" style="border-color: rgba(200, 64, 255, 0.15);">
+                    <h3><span class="glow-2">Spec Reviewer</span></h3>
+                    <p>Проверяет: код делает ровно то, что в спеке? Не больше, не меньше.</p>
+                </div>
+                <div class="card" style="border-color: rgba(0, 240, 255, 0.15);">
+                    <h3><span class="glow">Quality Reviewer</span></h3>
+                    <p>Проверяет качество: тесты, стиль, edge cases. Critical issues блокируют.</p>
+                </div>
+            </div>
+
+            <div class="iron-law reveal">
+                Implementer &rarr; Spec Review &rarr; Quality Review &rarr; Next Task. Не прошёл ревью? Правит. Ревью заново.
+            </div>
+        </div>
+        <div class="slide-number">09 / 10</div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 10 — KEY INSIGHT / FINAL
+         ============================================ -->
+    <section class="slide title-slide">
+        <div class="blob blob--cyan" style="width: 400px; height: 400px; top: -100px; left: 20%;"></div>
+        <div class="blob blob--magenta" style="width: 350px; height: 350px; bottom: -80px; right: 5%;"></div>
+
+        <div class="slide-content" style="align-items: center; text-align: center;">
+            <div class="reveal" style="margin-bottom: var(--content-gap);">
+                <span class="tag tag--cyan">insight</span>
+            </div>
+
+            <h1 class="reveal" style="font-size: clamp(1.5rem, 6vw, 3rem); line-height: 1.3;">
+                Это не промпт.<br>
+                Это <span class="glow-2">закодированная</span><br>
+                <span class="glow">экспертиза.</span>
+            </h1>
+
+            <div class="divider reveal" style="margin: var(--content-gap) auto;"></div>
+
+            <p class="reveal" style="color: var(--text-secondary); font-size: var(--body-size); max-width: 550px;">
+                Каждый скилл — это сотни часов опыта инженеров,
+                сжатые в чёткие правила. AI не становится умнее —
+                он перестаёт делать глупости.
+            </p>
+
+            <div class="reveal" style="margin-top: var(--content-gap); display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: center;">
+                <span class="tag tag--dim">github.com/obra/superpowers</span>
+            </div>
+        </div>
+        <div class="slide-number">10 / 10</div>
+    </section>
+
+    <!-- ============================================
+       JAVASCRIPT
+       ============================================ -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.totalSlides = this.slides.length;
+                this.currentSlide = 0;
+                this.isScrolling = false;
+
+                this.createNavDots();
+                this.setupObserver();
+                this.setupKeyboard();
+                this.setupWheel();
+                this.setupTouch();
+                this.updateProgress();
+                this.slides[0].classList.add('visible');
+            }
+
+            createNavDots() {
+                const nav = document.getElementById('navDots');
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.classList.add('nav-dot');
+                    if (i === 0) dot.classList.add('active');
+                    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+                    dot.addEventListener('click', () => this.goTo(i));
+                    nav.appendChild(dot);
+                });
+                this.dots = nav.querySelectorAll('.nav-dot');
+            }
+
+            setupObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = [...this.slides].indexOf(entry.target);
+                            this.currentSlide = idx;
+                            this.updateDots();
+                            this.updateProgress();
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                        e.preventDefault();
+                        this.next();
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.prev();
+                    }
+                });
+            }
+
+            setupWheel() {
+                let timeout;
+                document.addEventListener('wheel', (e) => {
+                    if (this.isScrolling) return;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        if (e.deltaY > 30) this.next();
+                        else if (e.deltaY < -30) this.prev();
+                    }, 50);
+                }, { passive: true });
+            }
+
+            setupTouch() {
+                let startY = 0;
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+                document.addEventListener('touchend', (e) => {
+                    const diff = startY - e.changedTouches[0].clientY;
+                    if (Math.abs(diff) > 50) {
+                        diff > 0 ? this.next() : this.prev();
+                    }
+                }, { passive: true });
+            }
+
+            goTo(index) {
+                if (index < 0 || index >= this.totalSlides) return;
+                this.isScrolling = true;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.currentSlide = index;
+                this.updateDots();
+                this.updateProgress();
+                setTimeout(() => { this.isScrolling = false; }, 800);
+            }
+
+            next() { this.goTo(this.currentSlide + 1); }
+            prev() { this.goTo(this.currentSlide - 1); }
+            updateDots() { this.dots.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide)); }
+            updateProgress() {
+                document.getElementById('progress').style.width = ((this.currentSlide + 1) / this.totalSlides * 100) + '%';
+            }
+        }
+
+        new SlidePresentation();
+    </script>
+</body>
+</html>
