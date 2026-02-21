@@ -136,23 +136,10 @@
             padding: clamp(3rem, 8vw, 5rem) var(--slide-padding) var(--slide-padding);
         }
 
-        /* Slides with heavy content → spread across full height */
+        /* Spread slides: content-heavy, distributed vertically on mobile */
         .slide-content.spread {
             justify-content: center;
             gap: var(--content-gap);
-        }
-
-        /* Grids and lists inside .spread grow to fill available space */
-        .slide-content.spread .features,
-        .slide-content.spread .features-3,
-        .slide-content.spread .route-list,
-        .slide-content.spread .vs-grid {
-            flex: 1;
-            align-content: center;
-        }
-
-        .slide-content.spread .route-list {
-            justify-content: center;
         }
 
         /* ===========================================
@@ -360,23 +347,19 @@
         .reveal:nth-child(4) { transition-delay: 0.35s; }
 
         /* ===========================================
-           RESPONSIVE — iPhone portrait-first
-           SE: 375×667  14: 390×844  15 Pro Max: 430×932
-           =========================================== */
-
-        /* ===========================================
-           iPHONE PORTRAIT — fill the tall screen
-           375×667 (SE) to 430×932 (15 Pro Max)
+           iPHONE PORTRAIT — vertical-first layout
+           The key: every container is flex-column with
+           children flex:1, so they STRETCH to fill height
            =========================================== */
         @media (max-width: 430px) and (orientation: portrait) {
             :root {
-                --title-size: 2.75rem;
-                --h2-size: 2rem;
+                --title-size: 2.5rem;
+                --h2-size: 1.75rem;
                 --h3-size: 1.15rem;
-                --body-size: 1.1rem;
-                --small-size: 0.95rem;
-                --slide-padding: 1.5rem;
-                --content-gap: 1.5rem;
+                --body-size: 1.05rem;
+                --small-size: 0.92rem;
+                --slide-padding: 1.25rem;
+                --content-gap: 1rem;
             }
 
             /* Safe area */
@@ -388,94 +371,132 @@
 
             .slide-content {
                 padding-top: max(4rem, calc(env(safe-area-inset-top) + 3rem));
-                padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 2rem));
+                padding-bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
                 padding-left: calc(var(--slide-padding) + env(safe-area-inset-left));
                 padding-right: calc(var(--slide-padding) + env(safe-area-inset-right));
+                gap: 1rem;
             }
 
-            /* Spread slides: fill entire height */
+            /* ---- SPREAD: vertical fill ---- */
             .slide-content.spread {
-                justify-content: space-between;
-                padding-top: max(4.5rem, calc(env(safe-area-inset-top) + 3.5rem));
-                padding-bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
+                justify-content: stretch;
+            }
+
+            /* All content containers inside spread → flex column, fill height */
+            .slide-content.spread .features,
+            .slide-content.spread .features-3,
+            .slide-content.spread .route-list,
+            .slide-content.spread .vs-grid {
+                flex: 1;
             }
 
             .slide-counter {
-                bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
-                font-size: 0.85rem;
+                bottom: max(0.75rem, calc(env(safe-area-inset-bottom) + 0.25rem));
+                font-size: 0.82rem;
             }
 
-            /* Feature grids: single column, big cards */
+            /* ---- FEATURES: vertical flex, cards stretch ---- */
             .features {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
+                display: flex !important;
+                flex-direction: column;
+                gap: 0.4rem;
             }
             .feature {
-                padding: 1.1rem 1.25rem;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                padding: 0.75rem 1.1rem;
                 border-radius: 0 !important;
             }
             .feature:first-child { border-radius: 14px 14px 0 0 !important; }
             .feature:last-child { border-radius: 0 0 14px 14px !important; }
-            .feature h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
-            .feature p { font-size: 0.95rem; line-height: 1.45; }
+            .feature h3 { font-size: 1.1rem; margin-bottom: 0.15rem; }
+            .feature p { font-size: 0.92rem; line-height: 1.4; }
 
-            /* Three features: vertical stack, big icons */
+            /* ---- FEATURES-3: vertical flex, items stretch ---- */
             .features-3 {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
+                display: flex !important;
+                flex-direction: column;
+                gap: 0;
             }
             .feature-3 {
+                flex: 1;
                 text-align: left;
                 display: flex;
                 gap: 1rem;
                 align-items: center;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+                padding: 0.5rem 0;
             }
+            .feature-3:last-child { border-bottom: none; }
             .feature-3-icon { flex-shrink: 0; margin-bottom: 0; }
             .feature-3-icon svg { width: 44px; height: 44px; }
-            .feature-3 h3 { font-size: 1.15rem; }
-            .feature-3 p { font-size: 1rem; }
+            .feature-3 h3 { font-size: 1.1rem; }
+            .feature-3 p { font-size: 0.95rem; }
 
-            /* Route list: big text, spacious rows */
-            .route-list { max-width: 100%; gap: 0; }
+            /* ---- ROUTE LIST: rows stretch to fill ---- */
+            .route-list {
+                display: flex !important;
+                flex-direction: column;
+                max-width: 100%;
+                gap: 0;
+            }
             .route {
+                flex: 1;
+                display: flex;
+                align-items: center;
                 gap: 0.75rem;
-                padding: 0.85rem 0;
+                padding: 0;
             }
             .route-trigger { font-size: 1.05rem; }
-            .route-skill { font-size: 0.9rem; }
-            .route-arrow { font-size: 0.9rem; }
+            .route-skill { font-size: 0.88rem; }
 
-            /* VS grid: side by side, bigger text */
-            .vs-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
-            .vs-col h3 { font-size: 1.15rem; margin-bottom: 0.75rem; }
-            .vs-item { font-size: 0.95rem; padding: 0.55rem 0; }
+            /* ---- VS GRID: stack vertically, stretch ---- */
+            .vs-grid {
+                display: flex !important;
+                flex-direction: column;
+                gap: 0;
+            }
+            .vs-col {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            .vs-col h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.4rem;
+                padding-top: 0.5rem;
+            }
+            .vs-item {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                font-size: 0.95rem;
+                padding: 0;
+            }
 
-            /* General */
-            p { line-height: 1.55; }
+            /* ---- General ---- */
+            p { line-height: 1.5; }
             h1 { line-height: 1.1; }
             h2 { line-height: 1.2; }
-
-            /* Pill bigger */
-            .pill { font-size: 0.9rem; padding: 0.35rem 0.9rem; }
+            .pill { font-size: 0.88rem; padding: 0.3rem 0.85rem; }
         }
 
-        /* iPhone SE (375×667) — slightly tighter */
+        /* iPhone SE (375×667) */
         @media (max-width: 375px) and (orientation: portrait) {
             :root {
-                --title-size: 2.25rem;
-                --h2-size: 1.65rem;
-                --h3-size: 1.05rem;
-                --body-size: 1rem;
-                --small-size: 0.88rem;
-                --slide-padding: 1.25rem;
-                --content-gap: 1.25rem;
+                --title-size: 2.1rem;
+                --h2-size: 1.5rem;
+                --body-size: 0.95rem;
+                --small-size: 0.85rem;
             }
-            .feature { padding: 0.9rem 1rem; }
             .feature h3 { font-size: 1rem; }
-            .feature p { font-size: 0.88rem; }
+            .feature p { font-size: 0.85rem; }
+            .feature-3 h3 { font-size: 1rem; }
+            .feature-3 p { font-size: 0.88rem; }
             .route-trigger { font-size: 0.95rem; }
-            .route-skill { font-size: 0.82rem; }
-            .vs-item { font-size: 0.88rem; }
+            .route-skill { font-size: 0.8rem; }
         }
 
         /* Tablet portrait */
