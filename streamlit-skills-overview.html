@@ -364,19 +364,22 @@
            SE: 375×667  14: 390×844  15 Pro Max: 430×932
            =========================================== */
 
-        /* All iPhones portrait (up to 430px) */
+        /* ===========================================
+           iPHONE PORTRAIT — fill the tall screen
+           375×667 (SE) to 430×932 (15 Pro Max)
+           =========================================== */
         @media (max-width: 430px) and (orientation: portrait) {
             :root {
-                --title-size: 2.25rem;
-                --h2-size: 1.5rem;
-                --h3-size: 0.95rem;
-                --body-size: 0.95rem;
-                --small-size: 0.82rem;
-                --slide-padding: 1.25rem;
-                --content-gap: 1rem;
+                --title-size: 2.75rem;
+                --h2-size: 2rem;
+                --h3-size: 1.15rem;
+                --body-size: 1.1rem;
+                --small-size: 0.95rem;
+                --slide-padding: 1.5rem;
+                --content-gap: 1.5rem;
             }
 
-            /* Safe area: notch / Dynamic Island / home bar */
+            /* Safe area */
             .story-progress {
                 padding-top: max(12px, env(safe-area-inset-top));
                 padding-left: env(safe-area-inset-left);
@@ -384,68 +387,95 @@
             }
 
             .slide-content {
-                padding-top: max(3.5rem, calc(env(safe-area-inset-top) + 2.5rem));
-                padding-bottom: max(1.5rem, calc(env(safe-area-inset-bottom) + 0.75rem));
+                padding-top: max(4rem, calc(env(safe-area-inset-top) + 3rem));
+                padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 2rem));
                 padding-left: calc(var(--slide-padding) + env(safe-area-inset-left));
                 padding-right: calc(var(--slide-padding) + env(safe-area-inset-right));
             }
 
-            /* Spread content to fill full screen height */
+            /* Spread slides: fill entire height */
             .slide-content.spread {
                 justify-content: space-between;
-                padding-top: max(4rem, calc(env(safe-area-inset-top) + 3rem));
-                padding-bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
+                padding-top: max(4.5rem, calc(env(safe-area-inset-top) + 3.5rem));
+                padding-bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
             }
 
             .slide-counter {
-                bottom: max(0.75rem, calc(env(safe-area-inset-bottom) + 0.25rem));
+                bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+                font-size: 0.85rem;
             }
 
-            /* 2x2 grid stays — portrait has plenty of vertical space */
-            .features { grid-template-columns: repeat(2, 1fr); gap: 1px; }
-            .feature { padding: 0.85rem; }
-            .feature h3 { font-size: 0.92rem; }
-            .feature p { font-size: 0.8rem; line-height: 1.4; }
+            /* Feature grids: single column, big cards */
+            .features {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .feature {
+                padding: 1.1rem 1.25rem;
+                border-radius: 0 !important;
+            }
+            .feature:first-child { border-radius: 14px 14px 0 0 !important; }
+            .feature:last-child { border-radius: 0 0 14px 14px !important; }
+            .feature h3 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+            .feature p { font-size: 0.95rem; line-height: 1.45; }
 
-            /* 3-col → stack with icon left */
-            .features-3 { grid-template-columns: 1fr; gap: 0.6rem; }
-            .feature-3 { text-align: left; display: flex; gap: 0.75rem; align-items: center; }
+            /* Three features: vertical stack, big icons */
+            .features-3 {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .feature-3 {
+                text-align: left;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+            }
             .feature-3-icon { flex-shrink: 0; margin-bottom: 0; }
-            .feature-3-icon svg { width: 32px; height: 32px; }
+            .feature-3-icon svg { width: 44px; height: 44px; }
+            .feature-3 h3 { font-size: 1.15rem; }
+            .feature-3 p { font-size: 1rem; }
 
-            /* Routes stay horizontal */
+            /* Route list: big text, spacious rows */
             .route-list { max-width: 100%; gap: 0; }
-            .route { gap: 0.5rem; padding: 0.55rem 0; }
-            .route-trigger { font-size: 0.9rem; }
-            .route-skill { font-size: 0.78rem; }
+            .route {
+                gap: 0.75rem;
+                padding: 0.85rem 0;
+            }
+            .route-trigger { font-size: 1.05rem; }
+            .route-skill { font-size: 0.9rem; }
+            .route-arrow { font-size: 0.9rem; }
 
-            /* VS — side by side works in portrait */
-            .vs-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-            .vs-col h3 { font-size: 0.95rem; }
-            .vs-item { font-size: 0.82rem; padding: 0.4rem 0; }
+            /* VS grid: side by side, bigger text */
+            .vs-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .vs-col h3 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+            .vs-item { font-size: 0.95rem; padding: 0.55rem 0; }
 
-            /* Readable line height for body */
+            /* General */
             p { line-height: 1.55; }
             h1 { line-height: 1.1; }
+            h2 { line-height: 1.2; }
+
+            /* Pill bigger */
+            .pill { font-size: 0.9rem; padding: 0.35rem 0.9rem; }
         }
 
-        /* iPhone SE — smaller screen, tighter */
+        /* iPhone SE (375×667) — slightly tighter */
         @media (max-width: 375px) and (orientation: portrait) {
             :root {
-                --title-size: 1.9rem;
-                --h2-size: 1.3rem;
-                --h3-size: 0.88rem;
-                --body-size: 0.88rem;
-                --small-size: 0.78rem;
-                --slide-padding: 1rem;
-                --content-gap: 0.75rem;
+                --title-size: 2.25rem;
+                --h2-size: 1.65rem;
+                --h3-size: 1.05rem;
+                --body-size: 1rem;
+                --small-size: 0.88rem;
+                --slide-padding: 1.25rem;
+                --content-gap: 1.25rem;
             }
-            .feature { padding: 0.7rem; }
-            .feature h3 { font-size: 0.85rem; }
-            .feature p { font-size: 0.75rem; }
-            .vs-item { font-size: 0.78rem; }
-            .route-trigger { font-size: 0.85rem; }
-            .route-skill { font-size: 0.72rem; }
+            .feature { padding: 0.9rem 1rem; }
+            .feature h3 { font-size: 1rem; }
+            .feature p { font-size: 0.88rem; }
+            .route-trigger { font-size: 0.95rem; }
+            .route-skill { font-size: 0.82rem; }
+            .vs-item { font-size: 0.88rem; }
         }
 
         /* Tablet portrait */
