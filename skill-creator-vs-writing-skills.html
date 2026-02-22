@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Skill Creator vs Writing Skills</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #f5f5f7;
+            --text-dim: #86868b;
+            --text-faint: #424245;
+            --blue: #2997ff;
+            --green: #30d158;
+            --orange: #ff9f0a;
+            --red: #ff453a;
+            --purple: #bf5af2;
+
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --title-size: clamp(2rem, 7vw, 5rem);
+            --h2-size: clamp(1.4rem, 5vw, 3rem);
+            --h3-size: clamp(0.85rem, 2.5vw, 1.3rem);
+            --body-size: clamp(0.8rem, 2.5vw, 1.15rem);
+            --small-size: clamp(0.7rem, 2vw, 0.9rem);
+            --slide-padding: clamp(1.25rem, 5vw, 5rem);
+            --content-gap: clamp(0.6rem, 2.5vw, 1.75rem);
+
+            --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: pan-x;
+        }
+
+        .story-progress {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            display: flex;
+            gap: 3px;
+            padding: clamp(8px, 1.5vw, 14px) clamp(6px, 1.5vw, 12px);
+            z-index: 200;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+        }
+
+        .story-bar {
+            flex: 1; height: 2.5px; border-radius: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            overflow: hidden; position: relative;
+        }
+
+        .story-bar-fill {
+            position: absolute; inset: 0;
+            background: #fff; border-radius: 2px;
+            transform: scaleX(0); transform-origin: left;
+            transition: transform 0.3s var(--ease-apple);
+        }
+
+        .story-bar.done .story-bar-fill { transform: scaleX(1); }
+        .story-bar.active .story-bar-fill { transform: scaleX(1); }
+        .story-bar.pending .story-bar-fill { transform: scaleX(0); }
+
+        .carousel { width: 100%; height: 100%; position: relative; overflow: hidden; }
+
+        .slides-track {
+            display: flex; height: 100%;
+            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+            will-change: transform;
+        }
+        .slides-track.dragging { transition: none; }
+
+        .slide {
+            width: 100vw; height: 100vh; height: 100dvh;
+            flex-shrink: 0; display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
+        }
+
+        .slide-content {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            max-height: 100%; overflow: hidden;
+            padding: clamp(3rem, 8vw, 5rem) var(--slide-padding) var(--slide-padding);
+        }
+
+        .slide-content.spread {
+            justify-content: center;
+            gap: var(--content-gap);
+        }
+
+        .tap-zone { position: absolute; top: 0; bottom: 0; z-index: 50; cursor: pointer; }
+        .tap-zone--left { left: 0; width: 30%; }
+        .tap-zone--right { right: 0; width: 70%; }
+
+        h1 { font-size: var(--title-size); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; }
+        h2 { font-size: var(--h2-size); font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
+        h3 { font-size: var(--h3-size); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+        p { font-size: var(--body-size); line-height: 1.5; color: var(--text-dim); font-weight: 400; }
+
+        .gradient-text {
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .gradient-text-warm {
+            background: linear-gradient(90deg, var(--orange), var(--red));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .gradient-text-green {
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .dim { color: var(--text-dim); }
+        .faint { color: var(--text-faint); }
+        .blue { color: var(--blue); }
+
+        .pill {
+            display: inline-block; padding: 0.3rem 0.75rem;
+            border-radius: 100px; font-size: var(--small-size); font-weight: 500;
+            color: var(--blue); background: rgba(41, 151, 255, 0.1);
+            margin-bottom: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        /* VS grid */
+        .vs-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 4vw, 3rem);
+            margin-top: var(--content-gap);
+            width: 100%; max-width: 750px;
+        }
+        .vs-col h3 { margin-bottom: 0.5rem; font-weight: 500; }
+        .vs-item {
+            font-size: var(--small-size); color: var(--text-dim);
+            padding: 0.35rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            line-height: 1.5;
+        }
+
+        /* Features 2x2 */
+        .features {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 1px; width: 100%; max-width: 800px;
+            margin-top: var(--content-gap);
+        }
+        .feature {
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .feature:first-child { border-radius: 16px 0 0 0; }
+        .feature:nth-child(2) { border-radius: 0 16px 0 0; }
+        .feature:nth-child(3) { border-radius: 0 0 0 16px; }
+        .feature:nth-child(4) { border-radius: 0 0 16px 0; }
+        .feature h3 { margin-bottom: 0.2rem; }
+        .feature p { font-size: var(--small-size); color: var(--text-dim); }
+
+        /* Features 3-col */
+        .features-3 {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.75rem, 2vw, 1.5rem);
+            width: 100%; max-width: 700px;
+            margin-top: var(--content-gap);
+        }
+        .feature-3 { text-align: center; }
+        .feature-3-icon { margin-bottom: clamp(0.3rem, 1vw, 0.75rem); }
+        .feature-3-icon svg { width: clamp(32px, 6vw, 44px); height: clamp(32px, 6vw, 44px); }
+        .feature-3 h3 { margin-bottom: 0.15rem; }
+        .feature-3 p { font-size: var(--small-size); }
+
+        /* Route list */
+        .route-list {
+            display: flex; flex-direction: column;
+            gap: clamp(0.2rem, 0.5vh, 0.4rem);
+            margin-top: var(--content-gap);
+            width: 100%; max-width: 600px;
+        }
+        .route {
+            display: flex; align-items: center;
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            padding: clamp(0.4rem, 1vw, 0.6rem) 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .route-trigger { font-size: var(--body-size); color: var(--text-dim); flex: 1; }
+        .route-arrow { color: var(--text-faint); font-size: var(--small-size); }
+        .route-skill {
+            font-size: var(--small-size); color: var(--blue); font-weight: 500;
+            font-family: ui-monospace, 'SF Mono', monospace;
+        }
+
+        /* Comparison table */
+        .compare-table {
+            width: 100%; max-width: 700px;
+            margin-top: var(--content-gap);
+            border-collapse: collapse;
+        }
+        .compare-table th {
+            font-size: var(--small-size); font-weight: 500;
+            color: var(--text-faint); text-align: left;
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .compare-table td {
+            font-size: var(--small-size); color: var(--text-dim);
+            padding: 0.4rem 0.6rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: top;
+        }
+        .compare-table td:first-child {
+            color: var(--text); font-weight: 500;
+            white-space: nowrap;
+        }
+        .compare-table .blue-cell { color: var(--blue); }
+        .compare-table .purple-cell { color: var(--purple); }
+
+        .slide-counter {
+            position: absolute;
+            bottom: clamp(0.75rem, 2vw, 1.25rem);
+            left: 50%; transform: translateX(-50%);
+            font-size: var(--small-size); color: var(--text-faint);
+            font-weight: 500; font-variant-numeric: tabular-nums;
+        }
+
+        /* Workflow arrows */
+        .workflow {
+            display: flex; align-items: center; justify-content: center;
+            gap: clamp(0.3rem, 1vw, 0.75rem);
+            margin-top: var(--content-gap);
+            flex-wrap: wrap;
+            max-width: 700px;
+        }
+        .workflow-step {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0.2rem; min-width: 80px;
+        }
+        .workflow-step-num {
+            width: clamp(32px, 5vw, 44px); height: clamp(32px, 5vw, 44px);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: var(--small-size); font-weight: 700;
+        }
+        .workflow-step-label {
+            font-size: clamp(0.6rem, 1.5vw, 0.78rem);
+            font-weight: 500; color: var(--text-dim);
+        }
+        .workflow-arrow {
+            font-size: var(--body-size); color: var(--text-faint);
+            margin-top: -0.8rem;
+        }
+
+        .reveal {
+            opacity: 0; transform: translateY(24px);
+            transition: opacity 0.6s var(--ease-apple), transform 0.6s var(--ease-apple);
+        }
+        .slide.active .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .reveal:nth-child(4) { transition-delay: 0.35s; }
+
+        @media (max-width: 430px) and (orientation: portrait) {
+            :root {
+                --title-size: 2.5rem; --h2-size: 1.75rem; --h3-size: 1.15rem;
+                --body-size: 1.05rem; --small-size: 0.92rem;
+                --slide-padding: 1.25rem; --content-gap: 1rem;
+            }
+            .story-progress {
+                padding-top: max(12px, env(safe-area-inset-top));
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+            .slide-content {
+                padding-top: max(4rem, calc(env(safe-area-inset-top) + 3rem));
+                padding-bottom: max(2.5rem, calc(env(safe-area-inset-bottom) + 1.5rem));
+                padding-left: calc(var(--slide-padding) + env(safe-area-inset-left));
+                padding-right: calc(var(--slide-padding) + env(safe-area-inset-right));
+                gap: 1rem;
+            }
+            .slide-content.spread { justify-content: stretch; }
+            .slide-content.spread .features,
+            .slide-content.spread .features-3,
+            .slide-content.spread .route-list,
+            .slide-content.spread .vs-grid,
+            .slide-content.spread .compare-table { flex: 1; }
+            .slide-counter {
+                bottom: max(0.75rem, calc(env(safe-area-inset-bottom) + 0.25rem));
+                font-size: 0.82rem;
+            }
+            .features { display: flex !important; flex-direction: column; gap: 0.4rem; }
+            .feature {
+                flex: 1; display: flex; flex-direction: column; justify-content: center;
+                padding: 0.75rem 1.1rem; border-radius: 0 !important;
+            }
+            .feature:first-child { border-radius: 14px 14px 0 0 !important; }
+            .feature:last-child { border-radius: 0 0 14px 14px !important; }
+            .feature h3 { font-size: 1.1rem; margin-bottom: 0.15rem; }
+            .feature p { font-size: 0.92rem; line-height: 1.4; }
+            .features-3 { display: flex !important; flex-direction: column; gap: 0; }
+            .feature-3 {
+                flex: 1; text-align: left; display: flex; gap: 1rem;
+                align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04);
+                padding: 0.5rem 0;
+            }
+            .feature-3:last-child { border-bottom: none; }
+            .feature-3-icon { flex-shrink: 0; margin-bottom: 0; }
+            .feature-3-icon svg { width: 44px; height: 44px; }
+            .feature-3 h3 { font-size: 1.1rem; }
+            .feature-3 p { font-size: 0.95rem; }
+            .vs-grid { display: flex !important; flex-direction: column; gap: 0; }
+            .vs-col { flex: 1; display: flex; flex-direction: column; }
+            .vs-col h3 { font-size: 1.1rem; margin-bottom: 0.4rem; padding-top: 0.5rem; }
+            .vs-item { flex: 1; display: flex; align-items: center; font-size: 0.95rem; padding: 0; }
+            .route-list { display: flex !important; flex-direction: column; max-width: 100%; gap: 0; }
+            .route { flex: 1; display: flex; align-items: center; gap: 0.75rem; padding: 0; }
+            .route-trigger { font-size: 1.05rem; }
+            .route-skill { font-size: 0.88rem; }
+            .compare-table td, .compare-table th { font-size: 0.88rem; padding: 0.35rem 0.4rem; }
+            p { line-height: 1.5; }
+            h1 { line-height: 1.1; }
+            h2 { line-height: 1.2; }
+            .pill { font-size: 0.88rem; padding: 0.3rem 0.85rem; }
+            .workflow { gap: 0.2rem; }
+            .workflow-step { min-width: 60px; }
+        }
+
+        @media (max-width: 375px) and (orientation: portrait) {
+            :root { --title-size: 2.1rem; --h2-size: 1.5rem; --body-size: 0.95rem; --small-size: 0.85rem; }
+        }
+
+        @media (min-width: 431px) and (max-width: 768px) {
+            :root { --title-size: clamp(2rem, 5vw, 3rem); --h2-size: clamp(1.4rem, 3.5vw, 2rem); --slide-padding: clamp(1.5rem, 4vw, 2.5rem); }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            :root {
+                --title-size: 1.5rem; --h2-size: 1.15rem; --h3-size: 0.78rem;
+                --body-size: 0.78rem; --small-size: 0.7rem;
+                --slide-padding: 0.75rem; --content-gap: 0.4rem;
+            }
+            .features { grid-template-columns: repeat(2, 1fr); }
+            .features-3 { grid-template-columns: repeat(3, 1fr); }
+            .feature { padding: 0.5rem; }
+            .feature h3 { font-size: 0.72rem; }
+            .feature p { font-size: 0.65rem; }
+            .slide-content { padding-top: 2.5rem; padding-bottom: 0.5rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="story-progress" id="storyProgress"></div>
+
+    <div class="carousel" id="carousel">
+        <div class="tap-zone tap-zone--left" id="tapLeft"></div>
+        <div class="tap-zone tap-zone--right" id="tapRight"></div>
+
+        <div class="slides-track" id="slidesTrack">
+
+            <!-- 1. TITLE -->
+            <section class="slide" data-slide="0">
+                <div class="slide-content">
+                    <h1 class="reveal">
+                        <span class="blue">Skill Creator</span><br>
+                        <span class="dim">vs</span><br>
+                        <span class="gradient-text">Writing Skills.</span>
+                    </h1>
+                    <p class="reveal" style="margin-top:var(--content-gap);max-width:500px;">
+                        Два skill для создания skills. Один от Anthropic, другой от&nbsp;Superpowers. Конкуренты или&nbsp;команда?
+                    </p>
+                </div>
+                <span class="slide-counter">1 / 12</span>
+            </section>
+
+            <!-- 2. КТО ЕСТЬ КТО -->
+            <section class="slide" data-slide="1">
+                <div class="slide-content spread">
+                    <h2 class="reveal">Кто есть кто</h2>
+                    <div class="vs-grid reveal">
+                        <div class="vs-col">
+                            <h3 class="blue">Skill Creator</h3>
+                            <div class="vs-item" style="color:var(--text);">Anthropic (официальный)</div>
+                            <div class="vs-item" style="color:var(--text);">github.com/anthropics/skills</div>
+                            <div class="vs-item" style="color:var(--text);">73K+ stars</div>
+                            <div class="vs-item" style="color:var(--text);">Формат, структура, упаковка</div>
+                        </div>
+                        <div class="vs-col">
+                            <h3 style="color:var(--purple);">Writing Skills</h3>
+                            <div class="vs-item" style="color:var(--text);">Jesse Vincent (community)</div>
+                            <div class="vs-item" style="color:var(--text);">github.com/obra/superpowers</div>
+                            <div class="vs-item" style="color:var(--text);">Часть набора Superpowers</div>
+                            <div class="vs-item" style="color:var(--text);">Качество, тестирование, TDD</div>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">2 / 12</span>
+            </section>
+
+            <!-- 3. МЕТАФОРА -->
+            <section class="slide" data-slide="2">
+                <div class="slide-content">
+                    <p class="pill reveal">Аналогия</p>
+                    <h2 class="reveal" style="max-width:650px;">
+                        Skill Creator&nbsp;&mdash; <span class="blue">архитектор.</span><br>
+                        Writing Skills&nbsp;&mdash; <span style="color:var(--purple);">инспектор.</span>
+                    </h2>
+                    <p class="reveal" style="margin-top:var(--content-gap);max-width:500px;">
+                        Один проектирует дом по&nbsp;чертежам и&nbsp;стандартам. Другой проверяет, что дом выдержит землетрясение.
+                    </p>
+                </div>
+                <span class="slide-counter">3 / 12</span>
+            </section>
+
+            <!-- 4. SKILL CREATOR — ФОКУС -->
+            <section class="slide" data-slide="3">
+                <div class="slide-content spread">
+                    <p class="pill reveal">Skill Creator</p>
+                    <h2 class="reveal"><span class="blue">Как собрать</span></h2>
+                    <div class="features reveal">
+                        <div class="feature">
+                            <h3 class="blue">Формат</h3>
+                            <p>SKILL.md + YAML frontmatter. Стандарт agentskills.io</p>
+                        </div>
+                        <div class="feature">
+                            <h3 class="blue">Структура</h3>
+                            <p>scripts/ + references/ + assets/ &mdash; чёткая анатомия</p>
+                        </div>
+                        <div class="feature">
+                            <h3 class="blue">Инструменты</h3>
+                            <p>init_skill.py, package_skill.py, quick_validate.py</p>
+                        </div>
+                        <div class="feature">
+                            <h3 class="blue">Дистрибуция</h3>
+                            <p>Упаковка в .skill (ZIP). Валидация перед публикацией</p>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">4 / 12</span>
+            </section>
+
+            <!-- 5. WRITING SKILLS — ФОКУС -->
+            <section class="slide" data-slide="4">
+                <div class="slide-content spread">
+                    <p class="pill reveal" style="color:var(--purple);background:rgba(191,90,242,0.1);">Writing Skills</p>
+                    <h2 class="reveal"><span style="color:var(--purple);">Как сделать надёжно</span></h2>
+                    <div class="features reveal">
+                        <div class="feature">
+                            <h3 style="color:var(--purple);">TDD</h3>
+                            <p>RED &rarr; GREEN &rarr; REFACTOR. Тестируй skill как код</p>
+                        </div>
+                        <div class="feature">
+                            <h3 style="color:var(--purple);">Pressure Testing</h3>
+                            <p>Субагенты под давлением. Ловим рационализации</p>
+                        </div>
+                        <div class="feature">
+                            <h3 style="color:var(--purple);">CSO</h3>
+                            <p>Claude Search Optimization. Чтобы skill нашли</p>
+                        </div>
+                        <div class="feature">
+                            <h3 style="color:var(--purple);">Anti&#8209;patterns</h3>
+                            <p>Red flags, таблицы рационализаций, loophole&#8209;closing</p>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">5 / 12</span>
+            </section>
+
+            <!-- 6. ПРОЦЕССЫ -->
+            <section class="slide" data-slide="5">
+                <div class="slide-content spread">
+                    <p class="pill reveal" style="color:var(--orange);background:rgba(255,159,10,0.1);">Процесс</p>
+                    <h2 class="reveal">Два подхода</h2>
+                    <div class="vs-grid reveal">
+                        <div class="vs-col">
+                            <h3 class="blue">Skill Creator</h3>
+                            <div class="vs-item" style="color:var(--text);">1. Understand &mdash; примеры</div>
+                            <div class="vs-item" style="color:var(--text);">2. Plan &mdash; ресурсы</div>
+                            <div class="vs-item" style="color:var(--text);">3. Init &mdash; шаблон</div>
+                            <div class="vs-item" style="color:var(--text);">4. Edit &mdash; написать</div>
+                            <div class="vs-item" style="color:var(--text);">5. Package &mdash; упаковать</div>
+                            <div class="vs-item" style="color:var(--text);">6. Iterate &mdash; улучшать</div>
+                        </div>
+                        <div class="vs-col">
+                            <h3 style="color:var(--purple);">Writing Skills</h3>
+                            <div class="vs-item" style="color:var(--red);">1. RED &mdash; тест без skill</div>
+                            <div class="vs-item" style="color:var(--red);">2. Задокументировать провалы</div>
+                            <div class="vs-item" style="color:var(--green);">3. GREEN &mdash; написать skill</div>
+                            <div class="vs-item" style="color:var(--green);">4. Тест со skill &mdash; pass</div>
+                            <div class="vs-item" style="color:var(--blue);">5. REFACTOR &mdash; закрыть лазейки</div>
+                            <div class="vs-item" style="color:var(--blue);">6. Ре&#8209;тест до bulletproof</div>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">6 / 12</span>
+            </section>
+
+            <!-- 7. ЧТО ПОКРЫВАЕТ КАЖДЫЙ -->
+            <section class="slide" data-slide="6">
+                <div class="slide-content spread">
+                    <h2 class="reveal">Зоны покрытия</h2>
+                    <table class="compare-table reveal">
+                        <tr>
+                            <th></th>
+                            <th class="blue-cell">Creator</th>
+                            <th class="purple-cell">Writing</th>
+                        </tr>
+                        <tr><td>Формат SKILL.md</td><td class="blue-cell">&#10003;</td><td class="purple-cell">&#10003;</td></tr>
+                        <tr><td>Progressive Disclosure</td><td class="blue-cell">&#10003;</td><td>&mdash;</td></tr>
+                        <tr><td>Скрипты (init, package)</td><td class="blue-cell">&#10003;</td><td>&mdash;</td></tr>
+                        <tr><td>Валидация формата</td><td class="blue-cell">&#10003;</td><td>&mdash;</td></tr>
+                        <tr><td>Тестирование (TDD)</td><td>&mdash;</td><td class="purple-cell">&#10003;</td></tr>
+                        <tr><td>Pressure scenarios</td><td>&mdash;</td><td class="purple-cell">&#10003;</td></tr>
+                        <tr><td>CSO (обнаружение)</td><td>базовое</td><td class="purple-cell">&#10003;</td></tr>
+                        <tr><td>Anti&#8209;rationalization</td><td>&mdash;</td><td class="purple-cell">&#10003;</td></tr>
+                    </table>
+                </div>
+                <span class="slide-counter">7 / 12</span>
+            </section>
+
+            <!-- 8. КОНФЛИКТЫ? -->
+            <section class="slide" data-slide="7">
+                <div class="slide-content">
+                    <h2 class="reveal" style="max-width:650px;">
+                        Конфликтуют?<br>
+                        <span class="gradient-text-green">Нет.</span>
+                    </h2>
+                    <p class="reveal" style="margin-top:var(--content-gap);max-width:520px;">
+                        Перекрытие только в&nbsp;базовых вещах: формат SKILL.md и&nbsp;YAML frontmatter. Оба требуют name + description. Рекомендации совместимы.
+                    </p>
+                </div>
+                <span class="slide-counter">8 / 12</span>
+            </section>
+
+            <!-- 9. КАК ИСПОЛЬЗОВАТЬ ВМЕСТЕ -->
+            <section class="slide" data-slide="8">
+                <div class="slide-content spread">
+                    <p class="pill reveal" style="color:var(--green);background:rgba(48,209,88,0.1);">Вместе</p>
+                    <h2 class="reveal">Комбинированный процесс</h2>
+                    <div class="route-list reveal">
+                        <div class="route">
+                            <span class="route-trigger">Собрать примеры, спланировать</span>
+                            <span class="route-arrow">&rarr;</span>
+                            <span class="route-skill" style="color:var(--blue);">Skill Creator</span>
+                        </div>
+                        <div class="route">
+                            <span class="route-trigger">Baseline&#8209;тест без skill</span>
+                            <span class="route-arrow">&rarr;</span>
+                            <span class="route-skill" style="color:var(--purple);">Writing Skills</span>
+                        </div>
+                        <div class="route">
+                            <span class="route-trigger">init_skill.py + написать</span>
+                            <span class="route-arrow">&rarr;</span>
+                            <span class="route-skill" style="color:var(--blue);">Skill Creator</span>
+                        </div>
+                        <div class="route">
+                            <span class="route-trigger">Pressure&#8209;тест, закрыть лазейки</span>
+                            <span class="route-arrow">&rarr;</span>
+                            <span class="route-skill" style="color:var(--purple);">Writing Skills</span>
+                        </div>
+                        <div class="route">
+                            <span class="route-trigger">Валидация + упаковка в .skill</span>
+                            <span class="route-arrow">&rarr;</span>
+                            <span class="route-skill" style="color:var(--blue);">Skill Creator</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">9 / 12</span>
+            </section>
+
+            <!-- 10. КОГДА КАКОЙ -->
+            <section class="slide" data-slide="9">
+                <div class="slide-content spread">
+                    <p class="pill reveal" style="color:var(--orange);background:rgba(255,159,10,0.1);">Когда какой</p>
+                    <h2 class="reveal">Выбор по задаче</h2>
+                    <div class="features reveal">
+                        <div class="feature">
+                            <h3 class="blue">Только Creator</h3>
+                            <p>Простой reference&#8209;skill. API&#8209;доки, шаблоны, ассеты. Нечего тестировать</p>
+                        </div>
+                        <div class="feature">
+                            <h3 style="color:var(--purple);">Только Writing</h3>
+                            <p>Discipline&#8209;skill для себя. Не&nbsp;нужна дистрибуция</p>
+                        </div>
+                        <div class="feature">
+                            <h3 style="color:var(--green);">Оба</h3>
+                            <p>Skill с правилами + публикация. Нужен и&nbsp;формат, и&nbsp;надёжность</p>
+                        </div>
+                        <div class="feature">
+                            <h3 class="dim">Ни один</h3>
+                            <p>Правила одного проекта &rarr; CLAUDE.md. Не&nbsp;создавай skill</p>
+                        </div>
+                    </div>
+                </div>
+                <span class="slide-counter">10 / 12</span>
+            </section>
+
+            <!-- 11. ВЕРДИКТ -->
+            <section class="slide" data-slide="10">
+                <div class="slide-content">
+                    <p class="pill reveal" style="color:var(--green);background:rgba(48,209,88,0.1);">Вердикт</p>
+                    <h2 class="reveal" style="max-width:650px;">
+                        Оставить <span class="gradient-text-green">оба.</span>
+                    </h2>
+                    <p class="reveal" style="margin-top:var(--content-gap);max-width:520px;">
+                        Skill Creator&nbsp;&mdash; стандарт формата и&nbsp;инструменты сборки.
+                        Writing Skills&nbsp;&mdash; методология качества и&nbsp;тестирования.
+                        Не&nbsp;дублируют, а&nbsp;дополняют друг друга.
+                    </p>
+                    <p class="reveal" style="margin-top:0.5rem;max-width:520px;">
+                        Вызывать отдельно не&nbsp;нужно&nbsp;&mdash; Claude сам выберет нужный по&nbsp;контексту задачи.
+                    </p>
+                </div>
+                <span class="slide-counter">11 / 12</span>
+            </section>
+
+            <!-- 12. ФИНАЛ -->
+            <section class="slide" data-slide="11">
+                <div class="slide-content">
+                    <h1 class="reveal">
+                        <span class="blue">Формат</span> + <span style="color:var(--purple);">Качество</span><br>
+                        <span class="gradient-text">= надёжный skill.</span>
+                    </h1>
+                    <p class="reveal faint" style="margin-top:var(--content-gap);font-size:var(--small-size);">
+                        anthropics/skills &bull; obra/superpowers
+                    </p>
+                </div>
+                <span class="slide-counter">12 / 12</span>
+            </section>
+
+        </div>
+    </div>
+
+    <script>
+        class Carousel {
+            constructor() {
+                this.track = document.getElementById('slidesTrack');
+                this.slides = document.querySelectorAll('.slide');
+                this.progressContainer = document.getElementById('storyProgress');
+                this.current = 0;
+                this.total = this.slides.length;
+                this.startX = 0; this.startY = 0; this.deltaX = 0;
+                this.isDragging = false; this.threshold = 50;
+
+                this.buildProgressBars();
+                this.bindTapZones();
+                this.bindTouch();
+                this.bindKeyboard();
+                this.goTo(0, false);
+            }
+
+            buildProgressBars() {
+                for (let i = 0; i < this.total; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'story-bar';
+                    bar.innerHTML = '<div class="story-bar-fill"></div>';
+                    bar.addEventListener('click', () => this.goTo(i));
+                    this.progressContainer.appendChild(bar);
+                }
+            }
+
+            updateProgress() {
+                const bars = this.progressContainer.querySelectorAll('.story-bar');
+                bars.forEach((bar, i) => {
+                    bar.classList.remove('done', 'active', 'pending');
+                    if (i < this.current) bar.classList.add('done');
+                    else if (i === this.current) bar.classList.add('active');
+                    else bar.classList.add('pending');
+                });
+            }
+
+            goTo(index, animate = true) {
+                if (index < 0 || index >= this.total) return;
+                this.slides[this.current]?.classList.remove('active');
+                this.current = index;
+                const offset = -index * 100;
+                if (!animate) this.track.style.transition = 'none';
+                this.track.style.transform = `translateX(${offset}vw)`;
+                if (!animate) { this.track.offsetHeight; this.track.style.transition = ''; }
+                this.slides[this.current].classList.add('active');
+                this.updateProgress();
+            }
+
+            next() { this.goTo(this.current + 1); }
+            prev() { this.goTo(this.current - 1); }
+
+            bindTapZones() {
+                document.getElementById('tapLeft').addEventListener('click', () => this.prev());
+                document.getElementById('tapRight').addEventListener('click', () => this.next());
+            }
+
+            bindTouch() {
+                const el = document.getElementById('carousel');
+                el.addEventListener('touchstart', (e) => {
+                    this.startX = e.touches[0].clientX; this.startY = e.touches[0].clientY;
+                    this.deltaX = 0; this.isDragging = true;
+                    this.track.classList.add('dragging');
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    if (!this.isDragging) return;
+                    this.deltaX = e.touches[0].clientX - this.startX;
+                    const deltaY = e.touches[0].clientY - this.startY;
+                    if (Math.abs(deltaY) > Math.abs(this.deltaX) && Math.abs(this.deltaX) < 10) {
+                        this.isDragging = false; this.track.classList.remove('dragging'); return;
+                    }
+                    let resistance = 1;
+                    if ((this.current === 0 && this.deltaX > 0) ||
+                        (this.current === this.total - 1 && this.deltaX < 0)) resistance = 0.3;
+                    const base = -this.current * window.innerWidth;
+                    this.track.style.transform = `translateX(${base + this.deltaX * resistance}px)`;
+                }, { passive: true });
+
+                el.addEventListener('touchend', () => {
+                    if (!this.isDragging) return;
+                    this.isDragging = false; this.track.classList.remove('dragging');
+                    if (this.deltaX < -this.threshold) this.next();
+                    else if (this.deltaX > this.threshold) this.prev();
+                    else this.goTo(this.current);
+                }, { passive: true });
+            }
+
+            bindKeyboard() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); this.next(); }
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); this.prev(); }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => new Carousel());
+    </script>
+</body>
+</html>
